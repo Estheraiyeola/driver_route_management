@@ -8,6 +8,9 @@ import (
 type UserRepository interface {
 	FindAll() ([]models.User, error)
 	Create(user *models.User) (models.User, error)
+	Delete(id int64) error
+	Update(id int64, user models.User) error
+	FindByID(id int64) (models.User, error)
 }
 
 type userRepository struct {
@@ -30,4 +33,19 @@ func (r *userRepository) Create(user *models.User) (models.User, error) {
 		return models.User{}, result.Error
 	}
 	return *user, nil
+}
+func (r *userRepository) Delete(id int64) error {
+	result := r.db.Delete(models.User{}, id)
+	return result.Error
+}
+
+func (r *userRepository) Update(id int64, user models.User) error {
+	result := r.db.Model(&models.User{}).Where("id = ?", id).Updates(user)
+	return result.Error
+}
+
+func (r *userRepository) FindByID(id int64) (models.User, error) {
+	var user models.User
+	result := r.db.First(&user, id)
+	return user, result.Error
 }
