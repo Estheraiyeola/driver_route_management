@@ -1,42 +1,80 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 
-	"github.com/Estheraiyeola/driver-route-management/internal/user/dto"
+	"github.com/Estheraiyeola/driver-route-management/internal/user/models"
 	"github.com/Estheraiyeola/driver-route-management/internal/user/service"
-	"github.com/gin-gonic/gin"
 )
 
 type DriverHandler struct {
-	service service.DriverService
+	driverService service.DriverService
 }
 
-func DriverHandlerImpl(s service.DriverService) *DriverHandler {
-	return &DriverHandler{service: s}
+func NewDriverHandler(driverService service.DriverService) *DriverHandler {
+	return &DriverHandler{driverService: driverService}
 }
 
-func (h *DriverHandler) CreateDriver(c *gin.Context) {
-	var request dto.CreateDriverDTO
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// GetAllDriversHandler handles GET /api/drivers
+func (h *DriverHandler) GetAllDriversHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	if err := h.service.CreateDriver(&request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create driver"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "Driver created successfully"})
-}
-
-func (h *DriverHandler) GetAllDrivers(c *gin.Context) {
-	drivers, err := h.service.GetAllDrivers()
+	drivers, err := h.driverService.GetAllDrivers()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch drivers"})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusOK, drivers)
+	json.NewEncoder(w).Encode(drivers)
+}
+
+// GetDriverByIDHandler handles GET /api/drivers/{id}
+func (h *DriverHandler) GetDriverByIDHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id") // ?id=1
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid driver id", http.StatusBadRequest)
+		return
+	}
+
+	driver, err := h.driverService.GetDriverById(uint(id))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(driver)
+}
+
+// UpdateDriverHandler handles PUT /api/drivers/{id}
+func (h *DriverHandler) UpdateDriverHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := r.URL.Query().Get("id") // ?id=1
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid driver id", http.StatusBadRequest)
+		return
+	}
+
+	var driver models.Driver
+	if err := json.NewDecoder(r.Body).Decode(&driver); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.driverService.UpdateDriver(uint(id), driver); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "driver updated successfully"})
 }

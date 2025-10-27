@@ -9,6 +9,8 @@ import (
 type CustomerService interface {
 	CreateCustomer(request *dto.CreateCustomerDTO) error
 	FindAllCustomer() ([]models.Customer, error)
+	GetCustomerById(id uint) (*models.Customer, error)
+	UpdateCustomer(id uint, customer models.Customer) error
 }
 
 type customerService struct {
@@ -29,4 +31,16 @@ func (s *customerService) CreateCustomer(request *dto.CreateCustomerDTO) error {
 
 func (s *customerService) FindAllCustomer() ([]models.Customer, error) {
 	return s.repo.FindAllCustomer()
+}
+
+func (s *customerService) GetCustomerById(id uint) (*models.Customer, error) {
+	return s.repo.GetCustomerById(id)
+}
+
+func (s *customerService) UpdateCustomer(id uint, customer models.Customer) error {
+	err := s.repo.UpdateCustomer(id, customer)
+	if err != nil {
+		return err
+	}
+	return nil
 }

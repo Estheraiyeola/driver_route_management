@@ -52,3 +52,27 @@ func (s *UserService) CreateUser(request dto.CreateUserDTO) error {
 
 	return nil
 }
+
+func (s *UserService) GetAllUsers() ([]models.User, error) {
+	users, err := s.userRepo.FindAll()
+	if err != nil {
+		return []models.User{}, err
+	}
+	return users, nil
+}
+
+func (s *UserService) GetUserById(id int64) (models.User, error) {
+	user, err := s.userRepo.FindByID(id)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
+}
+
+func (s *UserService) UpdateUser(id int64, user models.User) error {
+	err := s.userRepo.Update(id, user)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -15,3 +15,10 @@ type DriverResponseDTO struct {
 	Email     string `json:"email"`
 	LicenseNo string `json:"license_no"`
 }
+type UpdateDriverDTO struct {
+	UserID        uint    `json:"user_id,omitempty"`
+	VehicleNumber string  `json:"vehicle_number,omitempty"`
+	VehicleType   string  `json:"vehicle_type,omitempty"`
+	Latitude      float64 `json:"latitude,omitempty"`
+	Longitude     float64 `json:"longitude,omitempty"`
+}

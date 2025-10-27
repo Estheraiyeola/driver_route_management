@@ -9,6 +9,8 @@ import (
 type DriverService interface {
 	CreateDriver(request *dto.CreateDriverDTO) error
 	GetAllDrivers() ([]models.Driver, error)
+	UpdateDriver(driverId uint, driver models.Driver) error
+	GetDriverById(u uint) (*models.Driver, error)
 }
 
 type driverService struct {
@@ -34,4 +36,20 @@ func (s *driverService) CreateDriver(request *dto.CreateDriverDTO) error {
 
 func (s *driverService) GetAllDrivers() ([]models.Driver, error) {
 	return s.repo.FindAllDriver()
+}
+
+func (s *driverService) GetDriverById(id uint) (*models.Driver, error) {
+	driver, err := s.repo.GetDriverById(id)
+	if err != nil {
+		return nil, err
+	}
+	return driver, nil
+}
+
+func (s *driverService) UpdateDriver(id uint, driver models.Driver) error {
+	err := s.repo.UpdateDriver(id, driver)
+	if err != nil {
+		return err
+	}
+	return nil
 }
